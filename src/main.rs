@@ -14,7 +14,7 @@ fn main() {
 
         if amt == 0x38 {
             let packet = InitialConnection::from(buf);
-            println!("{}: {:#02x?}", ctr, packet);
+            println!("{:2}: {:?}", ctr, packet);
             ctr += 1;
         }
     }

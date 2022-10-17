@@ -24,7 +24,7 @@ impl From<[u8; 0x38]> for InitialConnection {
 
 impl Debug for InitialConnection {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "Packet[ peer_id: {}, use_crc: {}, cmd_count: {}, time: {}, challenge: {}, data: [{:02x}, {:02x}, ... ({})] ]", 
+        write!(f, "Packet[ peer_id: 0x{:04x}, use_crc: {}, cmd_count: 0x{:x}, time: 0x{:08x}, challenge: 0x{:08x}, data: [0x{:02x}, 0x{:02x}, ... (0x{:x})] ]", 
             self.peer_id, self.use_crc, self.cmd_count, self.time, 
             self.challenge, self.data[0], self.data[1], self.data.len() - 2)
     }

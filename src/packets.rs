@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-pub struct InitialConnection {
+pub struct Command {
     peer_id: u16,
     use_crc: bool,
     cmd_count: u8,
@@ -9,7 +9,7 @@ pub struct InitialConnection {
     data: Vec<u8>
 }
 
-impl From<[u8; 0x38]> for InitialConnection {
+impl From<[u8; 0x38]> for Command {
     fn from(val: [u8; 0x38]) -> Self {
         Self { 
             peer_id: u16::from_be_bytes(val[0x0..0x2].try_into().unwrap()),
@@ -22,7 +22,7 @@ impl From<[u8; 0x38]> for InitialConnection {
     }
 }
 
-impl Debug for InitialConnection {
+impl Debug for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Packet[ peer_id: 0x{:04x}, use_crc: {}, cmd_count: 0x{:x}, time: 0x{:08x}, challenge: 0x{:08x}, data: [0x{:02x}, 0x{:02x}, ... (0x{:x})] ]", 
             self.peer_id, self.use_crc, self.cmd_count, self.time, 

@@ -2,7 +2,7 @@
 use std::net::UdpSocket;
 
 mod packets;
-use packets::InitialConnection;
+use packets::Command;
 
 fn main() {
     let socket = UdpSocket::bind("0.0.0.0:5055").unwrap();
@@ -13,7 +13,7 @@ fn main() {
         let (amt, _) = socket.recv_from(&mut buf).unwrap();
 
         if amt == 0x38 {
-            let packet = InitialConnection::from(buf);
+            let packet = Command::from(buf);
             println!("{:2}: {:?}", ctr, packet);
             ctr += 1;
         }

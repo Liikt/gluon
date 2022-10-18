@@ -2,6 +2,7 @@ use std::fmt::Debug;
 
 #[derive(Debug, Clone, Copy)]
 pub enum CommandType {
+    Ack,
     Connect,
     Disconnect,
     Other(u8)
@@ -16,6 +17,7 @@ impl Default for CommandType {
 impl From<u8> for CommandType {
     fn from(val: u8) -> Self {
         match val {
+            1 => CommandType::Ack,
             2 => CommandType::Connect,
             4 => CommandType::Disconnect,
             _ => CommandType::Other(val)

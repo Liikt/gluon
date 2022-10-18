@@ -42,7 +42,7 @@ pub struct CommandHeader {
 }
 
 impl CommandHeader {
-    pub fn new(buf: &[u8], mut offset: usize) -> Self {
+    pub fn deserialize(buf: &[u8], mut offset: usize) -> Self {
         let mut ret = Self {
             cmd_type: CommandType::from(buf[offset]),
             channel_id: buf[offset + 1],
@@ -82,9 +82,9 @@ impl CommandHeader {
 
     fn len(&self) -> usize {
         match self.cmd_type {
-            CommandType::Other(7) => 16,
-            CommandType::Other(8) => 32,
-            _ => 12
+            CommandType::Other(7) => 0x10,
+            CommandType::Other(8) => 0x20,
+            _ => 0xc
         }
     }
 }
@@ -117,8 +117,8 @@ pub struct Command {
 }
 
 impl Command {
-    pub fn new(buf: &[u8], mut offset: usize) -> Self {
-        let header = CommandHeader::new(&buf, offset);
+    pub fn deserialize(buf: &[u8], mut offset: usize) -> Self {
+        let header = CommandHeader::deserialize(&buf, offset);
         offset += header.len() as usize;
 
         let payload_len = header.size as usize - header.len();
@@ -165,7 +165,7 @@ impl From<Vec<u8>> for CommandPacket {
 
         let mut offset = 0xc;
         while offset < val.len() {
-            let cmd= Command::new(&val, offset);
+            let cmd= Command::deserialize(&val, offset);
             offset += cmd.len() as usize;
             ret.cmds.push(cmd);
         }

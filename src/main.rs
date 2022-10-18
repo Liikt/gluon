@@ -1,21 +1,16 @@
-
 use std::net::UdpSocket;
 
-mod packets;
-use packets::*;
+use server::handle_request;
 
 fn main() {
     let socket = UdpSocket::bind("0.0.0.0:5055").unwrap();
-    let mut ctr = 0;
 
     loop {
         let mut buf = [0; 0x38];
-        let (amt, _) = socket.recv_from(&mut buf).unwrap();
+        let (amt, conn) = socket.recv_from(&mut buf).unwrap();
 
         if amt == 0x38 {
-            let packet = CommandPacket::from(Vec::from(buf));
-            println!("{:2}: {:?}", ctr, packet);
-            ctr += 1;
+            handle_request(&buf, &socket, conn);
         }
     }
 }

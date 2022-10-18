@@ -1,8 +1,31 @@
 use std::fmt::Debug;
 
+#[derive(Debug, Clone, Copy)]
+pub enum CommandType {
+    Connect,
+    Disconnect,
+    Other(u8)
+}
+
+impl Default for CommandType {
+    fn default() -> Self {
+        CommandType::Other(0xff)
+    }
+}
+
+impl From<u8> for CommandType {
+    fn from(val: u8) -> Self {
+        match val {
+            2 => CommandType::Connect,
+            4 => CommandType::Disconnect,
+            _ => CommandType::Other(val)
+        }
+    }
+}
+
 #[derive(Default, Clone, Copy)]
 pub struct CommandHeader {
-    cmd_type: u8,
+    cmd_type: CommandType,
     channel_id: u8,
     flags: u8,
     reserved: u8,
@@ -19,7 +42,7 @@ pub struct CommandHeader {
 impl CommandHeader {
     pub fn new(buf: &[u8], mut offset: usize) -> Self {
         let mut ret = Self {
-            cmd_type: buf[offset],
+            cmd_type: CommandType::from(buf[offset]),
             channel_id: buf[offset + 1],
             flags: buf[offset + 2],
             reserved: buf[offset + 3],
@@ -33,11 +56,11 @@ impl CommandHeader {
         offset += 0xc;
 
         match ret.cmd_type {
-            7 => {
+            CommandType::Other(7) => {
                 ret.unreliable_seq_num = Some(u32::from_be_bytes(
                     buf[offset..offset+4].try_into().unwrap()));
             }
-            8 => {
+            CommandType::Other(8) => {
                 ret.start_seq_num = Some(u32::from_be_bytes(
                     buf[offset..offset+0x4].try_into().unwrap()));
                 ret.fragment_count = Some(u32::from_be_bytes(
@@ -57,8 +80,8 @@ impl CommandHeader {
 
     fn len(&self) -> usize {
         match self.cmd_type {
-            7 => 16,
-            8 => 32,
+            CommandType::Other(7) => 16,
+            CommandType::Other(8) => 32,
             _ => 12
         }
     }
@@ -67,13 +90,13 @@ impl CommandHeader {
 impl Debug for CommandHeader {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, 
-            "CmdHeader[ type: 0x{:x}, channel_id: 0x{:x}, flags: 0x{:x}, reserved: 0x{:x}, size: 0x{:x}, reliable_sequence_num: 0x{:x}",
+            "CmdHeader[ type: {:?}, channel_id: 0x{:x}, flags: 0x{:x}, reserved: 0x{:x}, size: 0x{:x}, reliable_sequence_num: 0x{:x}",
             self.cmd_type, self.channel_id, self.flags, self.reserved, self.size, self.reliable_seq_num
         )?;
         match self.cmd_type {
-            7 => write!(f, ", unreliable_sequence_num: 0x{:x}", 
+            CommandType::Other(7) => write!(f, ", unreliable_sequence_num: 0x{:x}", 
                 self.unreliable_seq_num.unwrap())?,
-            8 => write!(f, 
+            CommandType::Other(8) => write!(f, 
                 ", start_sequence_num: 0x{:x}, fragment_count: 0x{:x}, fragment_num: 0x{:x}, total_len: 0x{:x}, fragment_offset: 0x{:x}",
                 self.start_seq_num.unwrap(), self.fragment_count.unwrap(), 
                 self.fragment_num.unwrap(), self.total_len.unwrap(),

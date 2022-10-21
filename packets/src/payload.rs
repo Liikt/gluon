@@ -15,9 +15,16 @@ pub struct Ack {
 }
 
 #[derive(Debug, Clone, Copy)]
+pub struct PeerID {
+    pub peer_id: u16,
+    len: u32
+}
+
+#[derive(Debug, Clone, Copy)]
 pub enum CommandPayload {
     Connect(Connect),
-    Ack(Ack)
+    Ack(Ack),
+    PeerID(PeerID)
 }
 
 impl CommandPayload {
@@ -35,7 +42,12 @@ impl CommandPayload {
                     .unwrap());
                 Self::Ack(Ack { acked_seq_num, send_time, len: 8})
             },
-            _ => panic!("Not implemented {:?}", typ)
+            CommandType::PeerID => {
+                let peer_id = u16::from_be_bytes(buf[0..2].try_into()
+                    .unwrap());
+                Self::PeerID(PeerID { peer_id, len: 32 })
+            }
+            _ => panic!("Not implemented {:?} {:?}", typ, buf)
         }
     }
 

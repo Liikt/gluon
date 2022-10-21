@@ -52,7 +52,7 @@ impl Debug for Command {
     }
 }
 
-pub struct CommandPacket {
+pub struct Request {
     pub peer_id: u16,
     pub use_crc: bool,
     pub cmd_count: u8,
@@ -61,7 +61,7 @@ pub struct CommandPacket {
     pub cmds: Vec<Command>
 }
 
-impl From<Vec<u8>> for CommandPacket {
+impl From<Vec<u8>> for Request {
     fn from(val: Vec<u8>) -> Self {
         let mut ret = Self { 
             peer_id: u16::from_be_bytes(val[0x0..0x2].try_into().unwrap()),
@@ -83,7 +83,7 @@ impl From<Vec<u8>> for CommandPacket {
     }
 }
 
-impl Debug for CommandPacket {
+impl Debug for Request {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Packet[ peer_id: 0x{:04x}, use_crc: {}, cmd_count: 0x{:x}, time: 0x{:08x}, challenge: 0x{:08x}, commands: {:?}] ]", 
             self.peer_id, self.use_crc, self.cmd_count, self.time, 

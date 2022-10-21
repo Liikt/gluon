@@ -18,6 +18,17 @@ impl Into<u8> for AuxillaryProperty {
     }
 }
 
+impl From<u8> for AuxillaryProperty {
+    fn from(val: u8) -> Self {
+        match val {
+            0 => Self::Nothing,
+            1 => Self::Encrypted,
+            204 => Self::Crc,
+            _ => panic!("{} is not an auxalliray property", val)
+        }
+    }
+}
+
 impl Default for AuxillaryProperty {
     fn default() -> Self {
         Self::Nothing

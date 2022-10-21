@@ -20,3 +20,12 @@ pub fn handle_request(buf: &[u8], socket: &UdpSocket, conn: SocketAddr) {
     socket.send_to(&ret_packet.serialize(), conn).unwrap();
     socket.send_to(&ret_packet.serialize(), conn).unwrap();
 }
+
+pub fn parse_packets() {
+    let data = std::fs::read("./foo.conv").unwrap();
+    let lines: Vec<&[u8]> = data.split(|x| *x == 0x18).collect();
+    for p in lines {
+        let packet = CommandPacket::from(Vec::from(p));
+        println!("{:?}", packet);
+    }
+}

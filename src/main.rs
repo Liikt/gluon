@@ -1,8 +1,15 @@
 use std::net::UdpSocket;
+use std::env::args;
+use std::process::exit;
 
-use server::handle_request;
+use server::{handle_request, parse_packets};
 
 fn main() {
+    if args().len() > 1 {
+        parse_packets();
+        exit(0);
+    }
+
     let socket = UdpSocket::bind("0.0.0.0:5055").unwrap();
 
     loop {

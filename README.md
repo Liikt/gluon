@@ -12,4 +12,5 @@ Endianess seems to be big endian (network endianess)
 # Important Locations
 
 * Private Server IP: `PhotonNetwork.ConnectUsingSettings`
+* Packet Sending Function: `ExitGames.Client.Photon.EnetPeer.SendOutgoingCommands`
 * Packet Receive Function: `ExitGames.Client.Photon.EnetPeer.ReceiveIncomingCommands`

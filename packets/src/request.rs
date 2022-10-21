@@ -11,10 +11,7 @@ pub struct Command {
 
 impl Command {
     pub fn new(mut header: CommandHeader, payload: CommandPayload) -> Self {
-        header.size += match payload {
-            CommandPayload::Connect(p) => p.len,
-            CommandPayload::Ack(p) => p.len
-        };
+        header.size += payload.len();
         Self {
             header,
             payload

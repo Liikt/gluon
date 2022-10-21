@@ -4,14 +4,14 @@ use crate::typ::CommandType;
 pub struct Connect {
     pub mtu: u16,
     pub channel_count: u8,
-    pub len: u32
+    len: u32
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct Ack {
     pub acked_seq_num: u32,
     pub send_time: u32,
-    pub len: u32
+    len: u32
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -40,4 +40,12 @@ impl CommandPayload {
     }
 
     pub fn serialize(&self) -> Vec<u8> { Vec::new() }
+
+    pub fn len(&self) -> u32 {
+        match self {
+            Self::Connect(p) => p.len,
+            Self::Ack(p) => p.len,
+            Self::PeerID(p) => p.len
+        }
+    }
 }

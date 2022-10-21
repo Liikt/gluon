@@ -3,9 +3,9 @@ use crate::request::Command;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum AuxillaryProperty {
-    Nothing = 0,
-    Encrypted = 1,
-    Crc = 204
+    Nothing,
+    Encrypted,
+    Crc
 }
 
 impl Into<u8> for AuxillaryProperty {

@@ -26,7 +26,7 @@ impl Command {
 
         let payload_len = header.size as usize - header.len();
         let payload = CommandPayload::deserialize(
-            &buf[offset..offset+payload_len]);
+            &buf[offset..offset+payload_len], header.cmd_type);
         Self {
             header,
             payload

@@ -1,3 +1,5 @@
+use crate::typ::CommandType;
+
 #[derive(Debug, Clone, Copy)]
 pub struct Connect {
     pub mtu: u16,
@@ -11,8 +13,15 @@ pub enum CommandPayload {
 }
 
 impl CommandPayload {
-    pub fn deserialize(_buf: &[u8]) -> Self {
-        Self::Connect(Connect { mtu: 0, channel_count: 0, len: 32 })
+    pub fn deserialize(buf: &[u8], typ: CommandType) -> Self {
+        match typ {
+            CommandType::Connect => {
+                let mtu = u16::from_be_bytes(buf[2..4].try_into().unwrap());
+                let channel_count = buf[11];
+                Self::Connect(Connect { mtu, channel_count, len: 32 })
+            },
+            _ => panic!("Not implemented {:?}", typ)
+        }
     }
 
     pub fn serialize(&self) -> Vec<u8> { Vec::new() }

@@ -37,6 +37,7 @@ impl Default for AuxillaryProperty {
 
 #[derive(Debug, Clone, Default)]
 pub struct Reply {
+    unused: u16,
     aux_property: AuxillaryProperty,
     cmd_count: u8,
     send_time: u32,
@@ -50,6 +51,7 @@ pub struct Reply {
 impl Reply {
     pub fn new(send_time: u32, challenge: u32, cmds: Vec<Command>) -> Self {
         Self {
+            unused: 0x1337,
             cmd_count: cmds.len().try_into().unwrap(),
             send_time,
             challenge,
@@ -61,7 +63,7 @@ impl Reply {
     pub fn serialize(&self) -> Vec<u8> {
         let total_len = self.cmds.iter().map(|x| x.len()).sum::<u32>() + 12;
         let mut ret = vec![0; total_len as usize];
-        ret[0x0..0x2].copy_from_slice(&[0x13, 0x37]);
+        ret[0x0..0x2].copy_from_slice(&self.unused.to_be_bytes());
         ret[0x2] = self.aux_property.into();
         ret[0x3] = self.cmd_count;
         ret[0x4..0x8].copy_from_slice(&self.send_time.to_be_bytes());

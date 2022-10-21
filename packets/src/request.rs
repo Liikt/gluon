@@ -13,6 +13,7 @@ impl Command {
     pub fn new(mut header: CommandHeader, payload: CommandPayload) -> Self {
         header.size += match payload {
             CommandPayload::Connect(p) => p.len,
+            CommandPayload::Ack(p) => p.len
         };
         Self {
             header,

@@ -8,8 +8,16 @@ pub struct Connect {
 }
 
 #[derive(Debug, Clone, Copy)]
+pub struct Ack {
+    pub acked_seq_num: u32,
+    pub send_time: u32,
+    pub len: u32
+}
+
+#[derive(Debug, Clone, Copy)]
 pub enum CommandPayload {
-    Connect(Connect)
+    Connect(Connect),
+    Ack(Ack)
 }
 
 impl CommandPayload {
@@ -19,6 +27,13 @@ impl CommandPayload {
                 let mtu = u16::from_be_bytes(buf[2..4].try_into().unwrap());
                 let channel_count = buf[11];
                 Self::Connect(Connect { mtu, channel_count, len: 32 })
+            },
+            CommandType::Ack => {
+                let acked_seq_num = u32::from_be_bytes(buf[0..4].try_into()
+                    .unwrap());
+                let send_time = u32::from_be_bytes(buf[4..8].try_into()
+                    .unwrap());
+                Self::Ack(Ack { acked_seq_num, send_time, len: 8})
             },
             _ => panic!("Not implemented {:?}", typ)
         }

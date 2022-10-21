@@ -78,3 +78,26 @@ impl Reply {
         ret
     }
 }
+
+impl From<Vec<u8>> for Reply {
+    fn from(buf: Vec<u8>) -> Self {
+        let mut ret = Self {
+            unused: u16::from_be_bytes(buf[0..2].try_into().unwrap()),
+            aux_property: AuxillaryProperty::from(buf[2]),
+            cmd_count: buf[3],
+            send_time: u32::from_be_bytes(buf[0x4..0x8].try_into().unwrap()),
+            challenge: u32::from_be_bytes(buf[0x8..0xc].try_into().unwrap()),
+            cmds: Vec::new(),
+            ..Default::default()
+        };
+
+        let mut offset = 0xc;
+        while offset < buf.len() {
+            let cmd= Command::deserialize(&buf, offset);
+            offset += cmd.len() as usize;
+            ret.cmds.push(cmd);
+        }
+
+        ret
+    }
+}

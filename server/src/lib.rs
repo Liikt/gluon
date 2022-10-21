@@ -12,7 +12,7 @@ pub fn handle_request(buf: &[u8], _socket: &UdpSocket, _conn: SocketAddr) {
 }
 
 pub fn parse_packets() {
-    let data = std::fs::read("./foo.conv").unwrap();
+    let data = std::fs::read("./tmp/foo.conv").unwrap();
     let lines: Vec<&[u8]> = data.split(|x| *x == 0x15).filter(|x| x.len() > 0).collect();
     for p in lines {
         if p[0] == 0 {

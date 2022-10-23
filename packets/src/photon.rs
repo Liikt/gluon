@@ -245,6 +245,13 @@ pub struct InitResponse {
 }
 
 #[derive(Debug, Clone)]
+pub struct Operation {
+    msg_type: MessageType,
+    opcode: u8,
+    values: BTreeMap<u8, Value>
+}
+
+#[derive(Debug, Clone)]
 pub struct InternalOperationRequest {
     msg_type: MessageType,
     opcode: u8,
@@ -262,6 +269,7 @@ pub struct InternalOperationResponse {
 pub enum PhotonCommand {
     Init(Init),
     InitResponse(InitResponse),
+    Operation(Operation),
     InternalOperationRequest(InternalOperationRequest),
     InternalOperationResponse(InternalOperationResponse)
 }
@@ -285,6 +293,21 @@ impl From<&[u8]> for PhotonCommand {
             MessageType::InitResponse => {
                 let num = buf[2];
                 Self::InitResponse(InitResponse { acked_num: num })
+            },
+            MessageType::Operation => {
+                let opcode = buf[2];
+                let num_obj = u16::from_be_bytes(buf[3..5].try_into().unwrap());
+                let mut values: BTreeMap<u8, Value> = BTreeMap::new();
+                let mut cur = 5;
+                for _ in 0..num_obj {
+                    let key = buf[cur];
+                    let typ = GpType::from(buf[cur+1]);
+                    cur += 2;
+                    let val = typ.parse(buf, &mut cur);
+                    values.insert(key, val);
+                }
+                Self::Operation(Operation { 
+                    msg_type, opcode, values })
             },
             MessageType::InternalOperationRequest => {
                 let opcode = buf[2];

@@ -1,7 +1,10 @@
 use std::net::{UdpSocket, SocketAddr};
 
-use packets::request::Request;
-use packets::reply::Reply;
+mod request;
+use crate::request::Request;
+
+mod reply;
+use crate::reply::Reply;
 
 static mut CTR: u32 = 0;
 

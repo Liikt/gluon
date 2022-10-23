@@ -6,5 +6,3 @@
 pub mod typ;
 pub mod header;
 pub mod payload;
-pub mod reply;
-pub mod request;

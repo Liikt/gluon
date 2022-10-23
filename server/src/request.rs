@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
-use crate::header::CommandHeader;
-use crate::payload::CommandPayload;
+use packets::header::CommandHeader;
+use packets::payload::CommandPayload;
 
 #[derive(Clone)]
 pub struct Command {
@@ -10,7 +10,7 @@ pub struct Command {
 }
 
 impl Command {
-    pub fn new(mut header: CommandHeader, payload: CommandPayload) -> Self {
+    pub fn _new(mut header: CommandHeader, payload: CommandPayload) -> Self {
         header.size += payload.len();
         Self {
             header,
@@ -31,7 +31,7 @@ impl Command {
         }
     }
 
-    pub fn serialize(&self) -> Vec<u8> {
+    pub fn _serialize(&self) -> Vec<u8> {
         let mut ret = vec![0; self.len() as usize];
         ret[..self.header.len()].copy_from_slice(&self.header.serialize());
         ret[self.header.len()..].copy_from_slice(&self.payload.serialize());

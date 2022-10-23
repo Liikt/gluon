@@ -35,7 +35,7 @@ impl Default for AuxillaryProperty {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Default)]
 pub struct Reply {
     unused: u16,
     aux_property: AuxillaryProperty,
@@ -44,8 +44,22 @@ pub struct Reply {
     challenge: u32,
     cmds: Vec<Command>,
 
-    _iv: Option<[u8; 16]>,
-    _crc: Option<u32>
+    iv: Option<[u8; 16]>,
+    crc: Option<u32>
+}
+
+impl std::fmt::Debug for Reply {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Reply[ aux_properties: {:?}, cmd_count: {}, send_time: 0x{:x}, challenge: 0x{:x}",
+            self.aux_property, self.cmd_count, self.send_time, self.challenge)?;
+        if let Some(iv) = self.iv {
+            write!(f, ", iv: {:x?}", iv)?;
+        }
+        if let Some(crc) = self.crc {
+            write!(f, ", crc: 0x{:x?}", crc)?;
+        }
+        write!(f, ", cmds: {:?} ]", self.cmds)
+    }
 }
 
 impl Reply {

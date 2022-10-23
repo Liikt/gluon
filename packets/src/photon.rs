@@ -33,7 +33,9 @@ pub enum MessageType {
     InternalOperationRequest,
     InternalOperationResponse,
     Message,
-    RawMessage
+    RawMessage,
+
+    Unknown(u8)
 }
 
 impl From<u8> for MessageType {
@@ -48,7 +50,7 @@ impl From<u8> for MessageType {
             7 => Self::InternalOperationResponse,
             8 => Self::Message,
             9 => Self::RawMessage,
-            _ => panic!("No such Message Type {}", value)
+            _ => Self::Unknown(value)
         }
     }
 }
@@ -65,6 +67,7 @@ impl Into<u8> for MessageType {
             Self::InternalOperationResponse => 7,
             Self::Message => 8,
             Self::RawMessage => 9,
+            Self::Unknown(v) => v
         }
     }
 }
@@ -291,6 +294,10 @@ impl From<&[u8]> for PhotonCommand {
     fn from(buf: &[u8]) -> Self {
         assert_eq!(buf[0], 0xf3);
         let msg_type = MessageType::from(buf[1]);
+        if let MessageType::Unknown(v) = msg_type {
+            println!("buf: {:?}", buf);
+            panic!("No such message type: {}", v);
+        }
 
         match msg_type {
             MessageType::Init => {

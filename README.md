@@ -15,6 +15,7 @@ Endianess seems to be big endian (network endianess)
 * Packet Sending Function: `ExitGames.Client.Photon.EnetPeer.SendOutgoingCommands`
 * Packet Receive Function: `ExitGames.Client.Photon.EnetPeer.ReceiveIncomingCommands`
 * Creation of a command: `ExitGames.Client.Photon.NCommand.NCommand`
+* Deserialization and Callback: `ExitGames.Client.Photon.PeerBase.DeserializeMessageAndCallback`
 
 ## Commands
 

@@ -108,7 +108,7 @@ impl From<u8> for GpType {
             68  => Self::Dictionary,
             100 => Self::Double,
             104 => Self::Hashtable,
-            109 => Self::Integer,
+            105 => Self::Integer,
             110 => Self::IntegerArray,
             108 => Self::Long,
             115 => Self::String,

@@ -176,7 +176,17 @@ impl GpType {
             Self::Integer => todo!("Integer not yet implemented"),
             Self::IntegerArray => todo!("IntegerArray not yet implemented"),
             Self::Long => todo!("Long not yet implemented"),
-            Self::String => todo!("String not yet implemented"),
+            Self::String => {
+                let num = u16::from_be_bytes(buf[*cur..*cur+2].try_into()
+                    .unwrap()) as usize;
+                *cur += 2;
+                if num == 0 { return Value::String(String::from("")); }
+                let mut string = String::from_utf8(
+                    Vec::from(&buf[*cur..*cur+num])).unwrap();
+                string.retain(|c| c != '\0');
+                *cur += num;
+                Value::String(string)
+            },
             Self::StringArray => todo!("StringArray not yet implemented"),
             Self::Custom => todo!("Custom not yet implemented"),
             Self::Null => todo!("Null not yet implemented"),

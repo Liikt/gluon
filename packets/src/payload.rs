@@ -20,11 +20,18 @@ pub struct PeerID {
     len: u32
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
+pub struct Reliable {
+    pub payload: Box<[u8]>,
+    len: u32
+}
+
+#[derive(Debug, Clone)]
 pub enum CommandPayload {
     Connect(Connect),
     Ack(Ack),
-    PeerID(PeerID)
+    PeerID(PeerID),
+    Reliable(Reliable)
 }
 
 impl CommandPayload {
@@ -46,6 +53,11 @@ impl CommandPayload {
                 let peer_id = u16::from_be_bytes(buf[0..2].try_into()
                     .unwrap());
                 Self::PeerID(PeerID { peer_id, len: 32 })
+            },
+            CommandType::Reliable => {
+                let size = buf.len() as u32;
+                let payload = Box::from(buf);
+                Self::Reliable(Reliable { payload: payload, len: 12 + size })
             }
             _ => panic!("Not implemented {:?} {:?}", typ, buf)
         }
@@ -57,7 +69,8 @@ impl CommandPayload {
         match self {
             Self::Connect(p) => p.len,
             Self::Ack(p) => p.len,
-            Self::PeerID(p) => p.len
+            Self::PeerID(p) => p.len,
+            Self::Reliable(p) => p.len,
         }
     }
 }

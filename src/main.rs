@@ -5,9 +5,12 @@ use std::process::exit;
 use server::{handle_request, parse_packets};
 
 fn main() {
-    if args().len() > 1 {
+    if args().len() > 1 && args().len() == 3 {
         parse_packets();
         exit(0);
+    } else if args().len() != 1 {
+        println!("Usage: {} <file path> <seperator byte>", args().next().unwrap());
+        exit(1);
     }
 
     let socket = UdpSocket::bind("0.0.0.0:5055").unwrap();

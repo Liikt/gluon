@@ -1,4 +1,5 @@
 use std::net::{UdpSocket, SocketAddr};
+use std::env::args;
 
 mod request;
 use crate::request::Request;
@@ -15,8 +16,10 @@ pub fn handle_request(buf: &[u8], _socket: &UdpSocket, _conn: SocketAddr) {
 }
 
 pub fn parse_packets() {
-    let data = std::fs::read("./tmp/foo.conv").unwrap();
-    let lines: Vec<&[u8]> = data.split(|x| *x == 0x15).filter(|x| x.len() > 0).collect();
+    let data = std::fs::read(args().nth(1).unwrap()).unwrap();
+    let lines: Vec<&[u8]> = data
+        .split(|x| *x == u8::from_str_radix(&*args().nth(2).unwrap(), 16).unwrap())
+        .filter(|x| x.len() > 0).collect();
     for p in lines {
         if p[0] == 0 {
             println!("cli => srv: {:?}", Request::from(Vec::from(&p[1..])));

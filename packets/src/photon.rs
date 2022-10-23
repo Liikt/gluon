@@ -252,6 +252,13 @@ pub struct Operation {
 }
 
 #[derive(Debug, Clone)]
+pub struct Event {
+    msg_type: MessageType,
+    opcode: u8,
+    values: BTreeMap<u8, Value>
+}
+
+#[derive(Debug, Clone)]
 pub struct InternalOperationRequest {
     msg_type: MessageType,
     opcode: u8,
@@ -270,6 +277,7 @@ pub enum PhotonCommand {
     Init(Init),
     InitResponse(InitResponse),
     Operation(Operation),
+    Event(Event),
     InternalOperationRequest(InternalOperationRequest),
     InternalOperationResponse(InternalOperationResponse)
 }
@@ -323,6 +331,10 @@ impl From<&[u8]> for PhotonCommand {
             },
             MessageType::InternalOperationResponse => {
                 Self::InternalOperationResponse(InternalOperationResponse { 
+                    msg_type, opcode, values })
+            },
+            MessageType::Event => {
+                Self::Event(Event { 
                     msg_type, opcode, values })
             },
             _ => todo!("Not yet implemented: {:?}", msg_type)

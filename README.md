@@ -15,3 +15,16 @@ Endianess seems to be big endian (network endianess)
 * Packet Sending Function: `ExitGames.Client.Photon.EnetPeer.SendOutgoingCommands`
 * Packet Receive Function: `ExitGames.Client.Photon.EnetPeer.ReceiveIncomingCommands`
 * Creation of a command: `ExitGames.Client.Photon.NCommand.NCommand`
+
+## Commands
+
+| CommandID | Command            |
+|----------:|-------------------:|
+| 1         | ACK                |
+| 2         | Connect            |
+| 3         | PeerID             |
+| 4         | Disconnect         |
+| 5         | NOP (?)            |
+| 6         | Reliable Command   |
+| 7         | Unreliable Command |
+| 8         | Fragmented Command |

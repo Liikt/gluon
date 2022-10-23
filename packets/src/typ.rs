@@ -4,8 +4,11 @@ pub enum CommandType {
     Connect,
     PeerID,
     Disconnect,
+    Nop,
+    Reliable,
     Unreliable,
     Fragmented,
+
     NotImplemented(u8)
 }
 
@@ -22,6 +25,8 @@ impl From<u8> for CommandType {
             2 => Self::Connect,
             3 => Self::PeerID,
             4 => Self::Disconnect,
+            5 => Self::Nop,
+            6 => Self::Reliable,
             7 => Self::Unreliable,
             8 => Self::Fragmented,
             _ => Self::NotImplemented(val)
@@ -36,6 +41,8 @@ impl Into<u8> for CommandType {
             Self::Connect => 2,
             Self::PeerID => 3,
             Self::Disconnect => 4,
+            Self::Nop => 5,
+            Self::Reliable => 6,
             Self::Unreliable => 7,
             Self::Fragmented => 8,
             Self::NotImplemented(v) => v

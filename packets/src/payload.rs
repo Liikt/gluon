@@ -16,7 +16,7 @@ pub struct Ack {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct PeerID {
+pub struct VerifyConnect {
     pub peer_id: u16,
     len: u32
 }
@@ -27,17 +27,27 @@ pub struct Reliable {
     len: u32
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct ServerTime {
+    len: u32
+}
+
 #[derive(Debug, Clone)]
 pub enum CommandPayload {
-    Connect(Connect),
+    None,
     Ack(Ack),
-    PeerID(PeerID),
-    Reliable(Reliable)
+    Connect(Connect),
+    VerifyConnect(VerifyConnect),
+    Reliable(Reliable),
+    ServerTime(ServerTime)
 }
 
 impl CommandPayload {
     pub fn deserialize(buf: &[u8], typ: CommandType) -> Self {
         match typ {
+            CommandType::None => {
+                Self::None
+            },
             CommandType::Connect => {
                 let mtu = u16::from_be_bytes(buf[2..4].try_into().unwrap());
                 let channel_count = buf[11];
@@ -50,15 +60,18 @@ impl CommandPayload {
                     .unwrap());
                 Self::Ack(Ack { acked_seq_num, send_time, len: 8})
             },
-            CommandType::PeerID => {
+            CommandType::VerifyConnect => {
                 let peer_id = u16::from_be_bytes(buf[0..2].try_into()
                     .unwrap());
-                Self::PeerID(PeerID { peer_id, len: 32 })
+                Self::VerifyConnect(VerifyConnect { peer_id, len: 32 })
             },
             CommandType::Reliable => {
                 let size = buf.len() as u32;
                 let payload = PhotonCommand::from(buf);
                 Self::Reliable(Reliable { payload, len: 12 + size })
+            },
+            CommandType::ServerTime => {
+                Self::ServerTime(ServerTime { len: 12 })
             }
             _ => panic!("Not implemented {:?} {:?}", typ, buf)
         }
@@ -68,10 +81,12 @@ impl CommandPayload {
 
     pub fn len(&self) -> u32 {
         match self {
+            Self::None => 0,
             Self::Connect(p) => p.len,
             Self::Ack(p) => p.len,
-            Self::PeerID(p) => p.len,
+            Self::VerifyConnect(p) => p.len,
             Self::Reliable(p) => p.len,
+            Self::ServerTime(p) => p.len,
         }
     }
 }

@@ -283,59 +283,45 @@ impl From<&[u8]> for PhotonCommand {
             MessageType::Init => {
                 let protocol_version = [buf[2], buf[3]];
                 let client_sdk_id = buf[4] >> 1;
-                let client_version = [buf[5] >> 4, buf[5] & ((1 << 4) - 1), 
+                let client_version = [buf[5] >> 4, buf[5] & ((1 << 4) - 1),
                     buf[6], buf[7]];
-                let mut app_id = String::from_utf8(Vec::from(&buf[9..])).unwrap();
+                let mut app_id = String::from_utf8(Vec::from(&buf[9..]))
+                    .unwrap();
                 app_id.retain(|c| c != '\0');
-                Self::Init(Init { protocol_version, client_sdk_id,
-                    client_version, app_id })
+                return Self::Init(Init { protocol_version, client_sdk_id,
+                    client_version, app_id });
             },
             MessageType::InitResponse => {
                 let num = buf[2];
-                Self::InitResponse(InitResponse { acked_num: num })
+                return Self::InitResponse(InitResponse { acked_num: num });
             },
+            MessageType::Operation | MessageType::InternalOperationRequest |
+            MessageType::InternalOperationResponse | MessageType::Event => {}
+            _ => todo!("Not yet implemented: {:?} {:?}", msg_type, buf)
+        }
+
+        let opcode = buf[2];
+        let num_obj = u16::from_be_bytes(buf[3..5].try_into().unwrap());
+        let mut values: BTreeMap<u8, Value> = BTreeMap::new();
+        let mut cur = 5;
+        for _ in 0..num_obj {
+            let key = buf[cur];
+            let typ = GpType::from(buf[cur+1]);
+            cur += 2;
+            let val = typ.parse(buf, &mut cur);
+            values.insert(key, val);
+        }
+
+        match msg_type {
             MessageType::Operation => {
-                let opcode = buf[2];
-                let num_obj = u16::from_be_bytes(buf[3..5].try_into().unwrap());
-                let mut values: BTreeMap<u8, Value> = BTreeMap::new();
-                let mut cur = 5;
-                for _ in 0..num_obj {
-                    let key = buf[cur];
-                    let typ = GpType::from(buf[cur+1]);
-                    cur += 2;
-                    let val = typ.parse(buf, &mut cur);
-                    values.insert(key, val);
-                }
                 Self::Operation(Operation { 
                     msg_type, opcode, values })
             },
             MessageType::InternalOperationRequest => {
-                let opcode = buf[2];
-                let num_obj = u16::from_be_bytes(buf[3..5].try_into().unwrap());
-                let mut values: BTreeMap<u8, Value> = BTreeMap::new();
-                let mut cur = 5;
-                for _ in 0..num_obj {
-                    let key = buf[cur];
-                    let typ = GpType::from(buf[cur+1]);
-                    cur += 2;
-                    let val = typ.parse(buf, &mut cur);
-                    values.insert(key, val);
-                }
                 Self::InternalOperationRequest(InternalOperationRequest { 
                     msg_type, opcode, values })
             },
             MessageType::InternalOperationResponse => {
-                let opcode = buf[2];
-                let num_obj = u16::from_be_bytes(buf[3..5].try_into().unwrap());
-                let mut values: BTreeMap<u8, Value> = BTreeMap::new();
-                let mut cur = 5;
-                for _ in 0..num_obj {
-                    let key = buf[cur];
-                    let typ = GpType::from(buf[cur+1]);
-                    cur += 2;
-                    let val = typ.parse(buf, &mut cur);
-                    values.insert(key, val);
-                }
                 Self::InternalOperationResponse(InternalOperationResponse { 
                     msg_type, opcode, values })
             },

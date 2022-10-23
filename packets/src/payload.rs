@@ -1,4 +1,5 @@
 use crate::typ::CommandType;
+use crate::photon::PhotonCommand;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Connect {
@@ -22,7 +23,7 @@ pub struct PeerID {
 
 #[derive(Debug, Clone)]
 pub struct Reliable {
-    pub payload: Box<[u8]>,
+    pub payload: PhotonCommand,
     len: u32
 }
 
@@ -56,8 +57,8 @@ impl CommandPayload {
             },
             CommandType::Reliable => {
                 let size = buf.len() as u32;
-                let payload = Box::from(buf);
-                Self::Reliable(Reliable { payload: payload, len: 12 + size })
+                let payload = PhotonCommand::from(buf);
+                Self::Reliable(Reliable { payload, len: 12 + size })
             }
             _ => panic!("Not implemented {:?} {:?}", typ, buf)
         }

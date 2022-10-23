@@ -173,7 +173,12 @@ impl GpType {
             Self::Dictionary => todo!("Dictionary not yet implemented"),
             Self::Double => todo!("Double not yet implemented"),
             Self::Hashtable => todo!("Hashtable not yet implemented"),
-            Self::Integer => todo!("Integer not yet implemented"),
+            Self::Integer => {
+                let ret = Value::Integer(
+                    i32::from_be_bytes(buf[*cur..*cur+4].try_into().unwrap()));
+                *cur += 4;
+                ret
+            },
             Self::IntegerArray => todo!("IntegerArray not yet implemented"),
             Self::Long => todo!("Long not yet implemented"),
             Self::String => {

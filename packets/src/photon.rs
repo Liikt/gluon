@@ -252,10 +252,18 @@ pub struct InternalOperationRequest {
 }
 
 #[derive(Debug, Clone)]
+pub struct InternalOperationResponse {
+    msg_type: MessageType,
+    opcode: u8,
+    values: BTreeMap<u8, Value>
+}
+
+#[derive(Debug, Clone)]
 pub enum PhotonCommand {
     Init(Init),
     InitResponse(InitResponse),
-    InternalOperationRequest(InternalOperationRequest)
+    InternalOperationRequest(InternalOperationRequest),
+    InternalOperationResponse(InternalOperationResponse)
 }
 
 impl From<&[u8]> for PhotonCommand {
@@ -291,6 +299,21 @@ impl From<&[u8]> for PhotonCommand {
                     values.insert(key, val);
                 }
                 Self::InternalOperationRequest(InternalOperationRequest { 
+                    msg_type, opcode, values })
+            },
+            MessageType::InternalOperationResponse => {
+                let opcode = buf[2];
+                let num_obj = u16::from_be_bytes(buf[3..5].try_into().unwrap());
+                let mut values: BTreeMap<u8, Value> = BTreeMap::new();
+                let mut cur = 5;
+                for _ in 0..num_obj {
+                    let key = buf[cur];
+                    let typ = GpType::from(buf[cur+1]);
+                    cur += 2;
+                    let val = typ.parse(buf, &mut cur);
+                    values.insert(key, val);
+                }
+                Self::InternalOperationResponse(InternalOperationResponse { 
                     msg_type, opcode, values })
             },
             _ => todo!("Not yet implemented: {:?}", msg_type)

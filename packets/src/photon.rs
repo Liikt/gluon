@@ -156,56 +156,6 @@ impl Into<u8> for GpType {
     }
 }
 
-impl GpType {
-    fn parse(&self, buf: &[u8], cur: &mut usize) -> Value {
-        match self {
-            Self::Array => todo!("Array not yet implemented"),
-            Self::Boolean => todo!("Boolean not yet implemented"),
-            Self::Byte => todo!("Byte not yet implemented"),
-            Self::ByteArray => {
-                let num = u32::from_be_bytes(buf[*cur..*cur+4].try_into()
-                    .unwrap()) as usize;
-                *cur += 4;
-                let ret = Value::ByteArray(Vec::from(&buf[*cur..*cur+num]));
-                *cur += num;
-                ret
-            },
-            Self::ObjectArray => todo!("ObjectArray not yet implemented"),
-            Self::Short => todo!("Short not yet implemented"),
-            Self::Float => todo!("Float not yet implemented"),
-            Self::Dictionary => todo!("Dictionary not yet implemented"),
-            Self::Double => todo!("Double not yet implemented"),
-            Self::Hashtable => todo!("Hashtable not yet implemented"),
-            Self::Integer => {
-                let ret = Value::Integer(
-                    i32::from_be_bytes(buf[*cur..*cur+4].try_into().unwrap()));
-                *cur += 4;
-                ret
-            },
-            Self::IntegerArray => todo!("IntegerArray not yet implemented"),
-            Self::Long => todo!("Long not yet implemented"),
-            Self::String => {
-                let num = u16::from_be_bytes(buf[*cur..*cur+2].try_into()
-                    .unwrap()) as usize;
-                *cur += 2;
-                if num == 0 { return Value::String(String::from("")); }
-                let mut string = String::from_utf8(
-                    Vec::from(&buf[*cur..*cur+num])).unwrap();
-                string.retain(|c| c != '\0');
-                *cur += num;
-                Value::String(string)
-            },
-            Self::StringArray => todo!("StringArray not yet implemented"),
-            Self::Custom => todo!("Custom not yet implemented"),
-            Self::Null => todo!("Null not yet implemented"),
-            Self::EventData => todo!("EventData not yet implemented"),
-            Self::OperationRequest => todo!("OperationRequest not yet implemented"),
-            Self::OperationResponse => todo!("OperationResponse not yet implemented"),
-            Self::Unknown => panic!("Tried to parse unknown :(")
-        }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub enum Value {
     Dictionary,
@@ -227,6 +177,63 @@ pub enum Value {
     ByteArray(Vec<u8>),
     Array,
     ObjectArray,
+}
+
+impl Value {
+    fn parse(t: GpType, buf: &[u8], cur: &mut usize) -> Self {
+        match t {
+            GpType::Array => todo!("Array not yet implemented"),
+            GpType::Boolean => todo!("Boolean not yet implemented"),
+            GpType::Byte => todo!("Byte not yet implemented"),
+            GpType::ByteArray => Self::parse_byte_array(buf, cur),
+            GpType::ObjectArray => todo!("ObjectArray not yet implemented"),
+            GpType::Short => todo!("Short not yet implemented"),
+            GpType::Float => todo!("Float not yet implemented"),
+            GpType::Dictionary => todo!("Dictionary not yet implemented"),
+            GpType::Double => todo!("Double not yet implemented"),
+            GpType::Hashtable => todo!("Hashtable not yet implemented"),
+            GpType::Integer => Self::parse_int(buf, cur),
+            GpType::IntegerArray => todo!("IntegerArray not yet implemented"),
+            GpType::Long => todo!("Long not yet implemented"),
+            GpType::String => Self::parse_string(buf, cur),
+            GpType::StringArray => todo!("StringArray not yet implemented"),
+            GpType::Custom => todo!("Custom not yet implemented"),
+            GpType::Null => todo!("Null not yet implemented"),
+            GpType::EventData => todo!("EventData not yet implemented"),
+            GpType::OperationRequest => todo!("OperationRequest not yet implemented"),
+            GpType::OperationResponse => todo!("OperationResponse not yet implemented"),
+            GpType::Unknown => panic!("Tried to parse unknown :(")
+        }
+    }
+
+    fn parse_byte_array(buf: &[u8], cur: &mut usize) -> Self {
+        let num = u32::from_be_bytes(buf[*cur..*cur+4].try_into()
+            .unwrap()) as usize;
+        *cur += 4;
+        let ret = Value::ByteArray(Vec::from(&buf[*cur..*cur+num]));
+        *cur += num;
+        ret
+    }
+
+    fn parse_int(buf: &[u8], cur: &mut usize) -> Self {
+        let ret = Self::Integer(
+            i32::from_be_bytes(buf[*cur..*cur+4].try_into().unwrap()));
+        *cur += 4;
+        ret
+    }
+
+    fn parse_string(buf: &[u8], cur: &mut usize) -> Self {
+        let num = u16::from_be_bytes(buf[*cur..*cur+2].try_into()
+            .unwrap()) as usize;
+        *cur += 2;
+        if num == 0 { return Self::String(String::from("")); }
+        let mut string = String::from_utf8(
+            Vec::from(&buf[*cur..*cur+num])).unwrap();
+        string.retain(|c| c != '\0');
+        *cur += num;
+        Self::String(string)
+    }
+
 }
 
 #[derive(Clone)]

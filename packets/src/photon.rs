@@ -314,12 +314,14 @@ pub enum PhotonCommand {
 
 impl From<&[u8]> for PhotonCommand {
     fn from(buf: &[u8]) -> Self {
-        assert_eq!(buf[0], 0xf3);
-        let msg_type = MessageType::from(buf[1]);
+        let mut cur = 0;
+        assert!(buf[cur] == 0xf3 || buf[cur] == 0xfd);
+        cur += 1;
+        let msg_type = MessageType::from(buf[cur]);
         if let MessageType::Unknown(v) = msg_type {
-            println!("buf: {:?}", buf);
-            panic!("No such message type: {}", v);
+            panic!("No such message type and not encrypted: {}", v);
         }
+        cur += 1;
 
         match msg_type {
             MessageType::Init => {
@@ -342,6 +344,8 @@ impl From<&[u8]> for PhotonCommand {
             _ => todo!("Not yet implemented: {:?} {:?}", msg_type, buf)
         }
 
+        let opcode = buf[cur];
+        cur += 1;
         let values = Value::parse_parameter_table(buf, &mut cur);
 
         match msg_type {

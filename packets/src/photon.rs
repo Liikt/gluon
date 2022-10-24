@@ -180,7 +180,7 @@ pub enum Value {
 }
 
 impl Value {
-    fn parse(t: GpType, buf: &[u8], cur: &mut usize) -> Self {
+    fn parse(t: GpType, buf: &[u8], cur: &mut usize) -> Option<Self> {
         match t {
             GpType::Array => todo!("Array not yet implemented"),
             GpType::Boolean => todo!("Boolean not yet implemented"),
@@ -198,44 +198,44 @@ impl Value {
             GpType::String => Self::parse_string(buf, cur),
             GpType::StringArray => todo!("StringArray not yet implemented"),
             GpType::Custom => todo!("Custom not yet implemented"),
-            GpType::Null => todo!("Null not yet implemented"),
+            GpType::Null => None,
             GpType::EventData => todo!("EventData not yet implemented"),
             GpType::OperationRequest => todo!("OperationRequest not yet implemented"),
             GpType::OperationResponse => todo!("OperationResponse not yet implemented"),
-            GpType::Unknown => panic!("Tried to parse unknown :(")
+            GpType::Unknown => None
         }
     }
 
-    fn parse_byte_array(buf: &[u8], cur: &mut usize) -> Self {
+    fn parse_byte_array(buf: &[u8], cur: &mut usize) -> Option<Self> {
         let num = u32::from_be_bytes(buf[*cur..*cur+4].try_into()
             .unwrap()) as usize;
         *cur += 4;
         let ret = Value::ByteArray(Vec::from(&buf[*cur..*cur+num]));
         *cur += num;
-        ret
+        Some(ret)
     }
 
-    fn parse_int(buf: &[u8], cur: &mut usize) -> Self {
+    fn parse_int(buf: &[u8], cur: &mut usize) -> Option<Self> {
         let ret = Self::Integer(
             i32::from_be_bytes(buf[*cur..*cur+4].try_into().unwrap()));
         *cur += 4;
-        ret
+        Some(ret)
     }
 
-    fn parse_string(buf: &[u8], cur: &mut usize) -> Self {
+    fn parse_string(buf: &[u8], cur: &mut usize) -> Option<Self> {
         let num = u16::from_be_bytes(buf[*cur..*cur+2].try_into()
             .unwrap()) as usize;
         *cur += 2;
-        if num == 0 { return Self::String(String::from("")); }
+        if num == 0 { return Some(Self::String(String::from(""))); }
         let mut string = String::from_utf8(
             Vec::from(&buf[*cur..*cur+num])).unwrap();
         string.retain(|c| c != '\0');
         *cur += num;
-        Self::String(string)
+        Some(Self::String(string))
     }
 
     fn parse_parameter_table(buf: &[u8], cur: &mut usize) 
-            -> BTreeMap<u8, Self> {
+            -> BTreeMap<u8, Option<Self>> {
         let num = u16::from_be_bytes(buf[*cur..*cur+2].try_into()
             .unwrap());
         *cur += 2;
@@ -278,21 +278,21 @@ pub struct InitResponse {
 pub struct Operation {
     msg_type: MessageType,
     opcode: u8,
-    values: BTreeMap<u8, Value>
+    values: BTreeMap<u8, Option<Value>>
 }
 
 #[derive(Debug, Clone)]
 pub struct Event {
     msg_type: MessageType,
     opcode: u8,
-    values: BTreeMap<u8, Value>
+    values: BTreeMap<u8, Option<Value>>
 }
 
 #[derive(Debug, Clone)]
 pub struct InternalOperationRequest {
     msg_type: MessageType,
     opcode: u8,
-    values: BTreeMap<u8, Value>
+    values: BTreeMap<u8, Option<Value>>
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -305,14 +305,14 @@ pub struct OperationResponse {
     opcode: u8,
     retcode: u16,
     dbg_msg: Option<Value>,
-    parameters: BTreeMap<u8, Value>
+    parameters: BTreeMap<u8, Option<Value>>
 }
 
 #[derive(Debug, Clone)]
 pub struct InternalOperationResponse {
     msg_type: MessageType,
     opcode: u8,
-    values: BTreeMap<u8, Value>
+    values: BTreeMap<u8, Option<Value>>
 }
 
 #[derive(Debug, Clone)]
@@ -364,11 +364,9 @@ impl From<&[u8]> for PhotonCommand {
                 let retcode = u16::from_be_bytes(buf[cur..cur+2].try_into()
                     .unwrap());
                 cur += 2;
-                let dbg_msg = if buf[cur] == 0 { None } else {
-                    let typ = GpType::from(buf[cur]);
-                    cur += 1;
-                    Some(Value::parse(typ, buf, &mut cur))
-                };
+                let typ = GpType::from(buf[cur]);
+                cur += 1;
+                let dbg_msg = Value::parse(typ, buf, &mut cur);
                 let parameters = 
                     Value::parse_parameter_table(buf, &mut cur);
                 return Self::OperationResponse(

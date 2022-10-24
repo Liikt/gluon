@@ -234,6 +234,21 @@ impl Value {
         Self::String(string)
     }
 
+    fn parse_parameter_table(buf: &[u8], cur: &mut usize) 
+            -> BTreeMap<u8, Self> {
+        let num = u16::from_be_bytes(buf[*cur..*cur+2].try_into()
+            .unwrap());
+        *cur += 2;
+        let mut ret = BTreeMap::new();
+        for _ in 0..num {
+            let key = buf[*cur];
+            let t = GpType::from(buf[*cur+1]);
+            *cur += 2;
+            let val = Self::parse(t, buf, cur);
+            ret.insert(key, val);
+        }
+        ret
+    }
 }
 
 #[derive(Clone)]
@@ -327,17 +342,7 @@ impl From<&[u8]> for PhotonCommand {
             _ => todo!("Not yet implemented: {:?} {:?}", msg_type, buf)
         }
 
-        let opcode = buf[2];
-        let num_obj = u16::from_be_bytes(buf[3..5].try_into().unwrap());
-        let mut values: BTreeMap<u8, Value> = BTreeMap::new();
-        let mut cur = 5;
-        for _ in 0..num_obj {
-            let key = buf[cur];
-            let typ = GpType::from(buf[cur+1]);
-            cur += 2;
-            let val = typ.parse(buf, &mut cur);
-            values.insert(key, val);
-        }
+        let values = Value::parse_parameter_table(buf, &mut cur);
 
         match msg_type {
             MessageType::Operation => {

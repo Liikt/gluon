@@ -301,6 +301,14 @@ pub struct Encrypted {
 }
 
 #[derive(Debug, Clone)]
+pub struct OperationResponse {
+    opcode: u8,
+    retcode: u16,
+    dbg_msg: Option<Value>,
+    parameters: BTreeMap<u8, Value>
+}
+
+#[derive(Debug, Clone)]
 pub struct InternalOperationResponse {
     msg_type: MessageType,
     opcode: u8,
@@ -314,6 +322,7 @@ pub enum PhotonCommand {
     Operation(Operation),
     Event(Event),
     Encrypted(Encrypted),
+    OperationResponse(OperationResponse),
     InternalOperationRequest(InternalOperationRequest),
     InternalOperationResponse(InternalOperationResponse)
 }
@@ -348,6 +357,22 @@ impl From<&[u8]> for PhotonCommand {
             MessageType::InitResponse => {
                 let num = buf[2];
                 return Self::InitResponse(InitResponse { acked_num: num });
+            },
+            MessageType::OperationResponse => {
+                let opcode = buf[cur];
+                cur += 1;
+                let retcode = u16::from_be_bytes(buf[cur..cur+2].try_into()
+                    .unwrap());
+                cur += 2;
+                let dbg_msg = if buf[cur] == 0 { None } else {
+                    let typ = GpType::from(buf[cur]);
+                    cur += 1;
+                    Some(Value::parse(typ, buf, &mut cur))
+                };
+                let parameters = 
+                    Value::parse_parameter_table(buf, &mut cur);
+                return Self::OperationResponse(
+                    OperationResponse { opcode, retcode, dbg_msg, parameters });
             },
             MessageType::Operation | MessageType::InternalOperationRequest |
             MessageType::InternalOperationResponse | MessageType::Event => {}

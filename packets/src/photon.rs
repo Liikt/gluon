@@ -295,6 +295,11 @@ pub struct InternalOperationRequest {
     values: BTreeMap<u8, Value>
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct Encrypted {
+    packet_len: usize
+}
+
 #[derive(Debug, Clone)]
 pub struct InternalOperationResponse {
     msg_type: MessageType,
@@ -308,6 +313,7 @@ pub enum PhotonCommand {
     InitResponse(InitResponse),
     Operation(Operation),
     Event(Event),
+    Encrypted(Encrypted),
     InternalOperationRequest(InternalOperationRequest),
     InternalOperationResponse(InternalOperationResponse)
 }
@@ -319,7 +325,11 @@ impl From<&[u8]> for PhotonCommand {
         cur += 1;
         let msg_type = MessageType::from(buf[cur]);
         if let MessageType::Unknown(v) = msg_type {
-            panic!("No such message type and not encrypted: {}", v);
+            if buf[cur] & 127 != 1 && buf[cur] & 128 > 1 {
+                return Self::Encrypted(Encrypted { packet_len: buf.len() });
+            } else {
+                panic!("No such message type and not encrypted: {}", v);
+            }
         }
         cur += 1;
 

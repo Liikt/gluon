@@ -33,6 +33,12 @@ pub struct Unreliable {
     len: u32
 }
 
+#[derive(Debug, Clone)]
+pub struct Fragmented {
+    pub payload: PhotonCommand,
+    len: u32
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct ServerTime {
     len: u32
@@ -46,6 +52,7 @@ pub enum CommandPayload {
     VerifyConnect(VerifyConnect),
     Reliable(Reliable),
     Unreliable(Unreliable),
+    Fragmented(Fragmented),
     ServerTime(ServerTime)
 }
 
@@ -82,6 +89,11 @@ impl CommandPayload {
                 let payload = PhotonCommand::from(buf);
                 Self::Unreliable(Unreliable { payload, len: 16 + size })
             },
+            CommandType::Fragmented => {
+                let size = buf.len() as u32;
+                let payload = PhotonCommand::from(buf);
+                Self::Fragmented(Fragmented { payload, len: 32 + size })
+            }
             CommandType::ServerTime => {
                 Self::ServerTime(ServerTime { len: 12 })
             }
@@ -99,6 +111,7 @@ impl CommandPayload {
             Self::VerifyConnect(p) => p.len,
             Self::Reliable(p) => p.len,
             Self::Unreliable(p) => p.len,
+            Self::Fragmented(p) => p.len,
             Self::ServerTime(p) => p.len,
         }
     }

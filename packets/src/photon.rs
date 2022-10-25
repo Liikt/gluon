@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::mem;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PhotonCode {
@@ -156,15 +157,49 @@ impl Into<u8> for GpType {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Float {
+    val: u32
+}
+
+impl From<f32> for Float {
+    fn from(val: f32) -> Self {
+        Self { val: unsafe { mem::transmute(val) } }
+    }
+}
+
+impl Into<f32> for Float {
+    fn into(self) -> f32 {
+        unsafe { mem::transmute(self.val) }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Double {
+    val: u64
+}
+
+impl From<f64> for Double {
+    fn from(val: f64) -> Self {
+        Self { val: unsafe { mem::transmute(val) } }
+    }
+}
+
+impl Into<f64> for Double {
+    fn into(self) -> f64 {
+        unsafe { mem::transmute(self.val) }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Value {
     Dictionary,
     StringArray(Vec<String>),
     Byte(u8),
     Custom,
-    Double(f64),
+    Double(Double),
     EventData,
-    Float(f32),
+    Float(Float),
     HashTable,
     Integer(i32),
     Short(i16),

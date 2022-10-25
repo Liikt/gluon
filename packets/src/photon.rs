@@ -200,7 +200,7 @@ pub enum Value {
     Double(Double),
     EventData,
     Float(Float),
-    HashTable,
+    HashTable(BTreeMap<Option<Value>, Option<Value>>),
     Integer(i32),
     Short(i16),
     Long(i64),
@@ -226,7 +226,7 @@ impl Value {
             GpType::Float => todo!("Float not yet implemented"),
             GpType::Dictionary => todo!("Dictionary not yet implemented"),
             GpType::Double => todo!("Double not yet implemented"),
-            GpType::Hashtable => todo!("Hashtable not yet implemented"),
+            GpType::Hashtable => Self::parse_hashtable(buf, cur),
             GpType::Integer => Self::parse_int(buf, cur),
             GpType::IntegerArray => todo!("IntegerArray not yet implemented"),
             GpType::Long => todo!("Long not yet implemented"),
@@ -248,6 +248,23 @@ impl Value {
         let ret = Value::ByteArray(Vec::from(&buf[*cur..*cur+num]));
         *cur += num;
         Some(ret)
+    }
+
+    fn parse_hashtable(buf: &[u8], cur: &mut usize) 
+            -> Option<Self> {
+        let num = u16::from_be_bytes(buf[*cur..*cur+2].try_into().unwrap());
+        let mut ret = BTreeMap::new();
+        *cur += 2;
+        for _ in 0..num {
+            let t1 = GpType::from(buf[*cur]);
+            *cur += 1;
+            let key = Self::parse(t1, buf, cur);
+            let t2 = GpType::from(buf[*cur]);
+            *cur += 1;
+            let value = Self::parse(t2, buf, cur);
+            ret.insert(key, value);
+        }
+        Some(Self::HashTable(ret))
     }
 
     fn parse_int(buf: &[u8], cur: &mut usize) -> Option<Self> {

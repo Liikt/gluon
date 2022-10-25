@@ -219,7 +219,7 @@ impl Value {
         match t {
             GpType::Array => todo!("Array not yet implemented"),
             GpType::Boolean => todo!("Boolean not yet implemented"),
-            GpType::Byte => todo!("Byte not yet implemented"),
+            GpType::Byte => Self::parse_byte(buf, cur),
             GpType::ByteArray => Self::parse_byte_array(buf, cur),
             GpType::ObjectArray => todo!("ObjectArray not yet implemented"),
             GpType::Short => todo!("Short not yet implemented"),
@@ -239,6 +239,13 @@ impl Value {
             GpType::OperationResponse => todo!("OperationResponse not yet implemented"),
             GpType::Unknown => None
         }
+    }
+
+
+    fn parse_byte(buf: &[u8], cur: &mut usize) -> Option<Self> {
+        let ret = Self::Byte(buf[*cur]);
+        *cur += 1;
+        Some(ret)
     }
 
     fn parse_byte_array(buf: &[u8], cur: &mut usize) -> Option<Self> {

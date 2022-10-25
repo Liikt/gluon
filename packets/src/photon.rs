@@ -218,7 +218,7 @@ impl Value {
     fn parse(t: GpType, buf: &[u8], cur: &mut usize) -> Option<Self> {
         match t {
             GpType::Array => todo!("Array not yet implemented"),
-            GpType::Boolean => todo!("Boolean not yet implemented"),
+            GpType::Boolean => Self::parse_bool(buf, cur),
             GpType::Byte => Self::parse_byte(buf, cur),
             GpType::ByteArray => Self::parse_byte_array(buf, cur),
             GpType::ObjectArray => todo!("ObjectArray not yet implemented"),
@@ -241,6 +241,11 @@ impl Value {
         }
     }
 
+    fn parse_bool(buf: &[u8], cur: &mut usize) -> Option<Self> {
+        let ret = Self::Boolean(buf[*cur] != 0);
+        *cur += 1;
+        Some(ret)
+    }
 
     fn parse_byte(buf: &[u8], cur: &mut usize) -> Option<Self> {
         let ret = Self::Byte(buf[*cur]);

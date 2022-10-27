@@ -27,6 +27,11 @@ pub struct Ping {
     len: u32
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct Disconnect {
+    len: u32
+}
+
 #[derive(Debug, Clone)]
 pub struct Reliable {
     pub payload: PhotonCommand,
@@ -57,6 +62,7 @@ pub enum CommandPayload {
     Connect(Connect),
     VerifyConnect(VerifyConnect),
     Ping(Ping),
+    Disconnect(Disconnect),
     Reliable(Reliable),
     Unreliable(Unreliable),
     Fragmented(Fragmented),
@@ -86,9 +92,12 @@ impl CommandPayload {
                     .unwrap());
                 Some(Self::VerifyConnect(VerifyConnect { peer_id, len: 32 }))
             },
+            CommandType::Disconnect => {
+                Some(Self::Ping(Ping { len: 12 }))
+            },
             CommandType::Ping => {
                 Some(Self::Ping(Ping { len: 12 }))
-            }
+            },
             CommandType::Reliable => {
                 let size = buf.len() as u32;
                 let payload = PhotonCommand::from(buf);
@@ -133,6 +142,7 @@ impl CommandPayload {
             Self::Connect(p) => p.len,
             Self::Ack(p) => p.len,
             Self::VerifyConnect(p) => p.len,
+            Self::Disconnect(p) => p.len,
             Self::Ping(p) => p.len,
             Self::Reliable(p) => p.len,
             Self::Unreliable(p) => p.len,

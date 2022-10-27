@@ -4,6 +4,5 @@ target
 *.dump
 *.pcapng
 *.out
-*.conv
 /tmp
 *.dll

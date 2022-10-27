@@ -130,7 +130,6 @@ impl CommandPayload {
             CommandType::ServerTime => {
                 Some(Self::ServerTime(ServerTime { len: 12 }))
             }
-            _ => panic!("Not implemented {:?} {:?}", header.cmd_type, buf)
         }
     }
 

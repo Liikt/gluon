@@ -335,48 +335,48 @@ impl std::fmt::Debug for Init {
 
 #[derive(Debug, Clone, Copy)]
 pub struct InitResponse {
-    acked_num: u8
+    _acked_num: u8
 }
 
 #[derive(Debug, Clone)]
 pub struct Operation {
-    msg_type: MessageType,
-    opcode: u8,
-    values: BTreeMap<u8, Option<Value>>
+    _msg_type: MessageType,
+    _opcode: u8,
+    _values: BTreeMap<u8, Option<Value>>
 }
 
 #[derive(Debug, Clone)]
 pub struct Event {
-    msg_type: MessageType,
-    opcode: u8,
-    values: BTreeMap<u8, Option<Value>>
+    _msg_type: MessageType,
+    _opcode: u8,
+    _values: BTreeMap<u8, Option<Value>>
 }
 
 #[derive(Debug, Clone)]
 pub struct InternalOperationRequest {
-    msg_type: MessageType,
-    opcode: u8,
-    values: BTreeMap<u8, Option<Value>>
+    _msg_type: MessageType,
+    _opcode: u8,
+    _values: BTreeMap<u8, Option<Value>>
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct Encrypted {
-    packet_len: usize
+    _packet_len: usize
 }
 
 #[derive(Debug, Clone)]
 pub struct OperationResponse {
-    opcode: u8,
-    retcode: u16,
-    dbg_msg: Option<Value>,
-    parameters: BTreeMap<u8, Option<Value>>
+    _opcode: u8,
+    _retcode: u16,
+    _dbg_msg: Option<Value>,
+    _parameters: BTreeMap<u8, Option<Value>>
 }
 
 #[derive(Debug, Clone)]
 pub struct InternalOperationResponse {
-    msg_type: MessageType,
-    opcode: u8,
-    values: BTreeMap<u8, Option<Value>>
+    _msg_type: MessageType,
+    _opcode: u8,
+    _values: BTreeMap<u8, Option<Value>>
 }
 
 #[derive(Debug, Clone)]
@@ -399,7 +399,7 @@ impl From<&[u8]> for PhotonCommand {
         let msg_type = MessageType::from(buf[cur]);
         if let MessageType::Unknown(v) = msg_type {
             if buf[cur] & 127 != 1 && buf[cur] & 128 > 1 {
-                return Self::Encrypted(Encrypted { packet_len: buf.len() });
+                return Self::Encrypted(Encrypted { _packet_len: buf.len() });
             } else {
                 panic!("No such message type and not encrypted: {}", v);
             }
@@ -420,7 +420,7 @@ impl From<&[u8]> for PhotonCommand {
             },
             MessageType::InitResponse => {
                 let num = buf[2];
-                return Self::InitResponse(InitResponse { acked_num: num });
+                return Self::InitResponse(InitResponse { _acked_num: num });
             },
             MessageType::OperationResponse => {
                 let opcode = buf[cur];
@@ -434,7 +434,12 @@ impl From<&[u8]> for PhotonCommand {
                 let parameters = 
                     Value::parse_parameter_table(buf, &mut cur);
                 return Self::OperationResponse(
-                    OperationResponse { opcode, retcode, dbg_msg, parameters });
+                    OperationResponse { 
+                        _opcode: opcode,
+                        _retcode: retcode,
+                        _dbg_msg: dbg_msg,
+                        _parameters: parameters 
+                    });
             },
             MessageType::Operation | MessageType::InternalOperationRequest |
             MessageType::InternalOperationResponse | MessageType::Event => {}
@@ -448,19 +453,19 @@ impl From<&[u8]> for PhotonCommand {
         match msg_type {
             MessageType::Operation => {
                 Self::Operation(Operation { 
-                    msg_type, opcode, values })
+                    _msg_type: msg_type, _opcode: opcode, _values: values })
             },
             MessageType::InternalOperationRequest => {
                 Self::InternalOperationRequest(InternalOperationRequest { 
-                    msg_type, opcode, values })
+                    _msg_type: msg_type, _opcode: opcode, _values: values })
             },
             MessageType::InternalOperationResponse => {
                 Self::InternalOperationResponse(InternalOperationResponse { 
-                    msg_type, opcode, values })
+                    _msg_type: msg_type, _opcode: opcode, _values: values })
             },
             MessageType::Event => {
                 Self::Event(Event { 
-                    msg_type, opcode, values })
+                    _msg_type: msg_type, _opcode: opcode, _values: values })
             },
             _ => todo!("Not yet implemented: {:?}", msg_type)
         }

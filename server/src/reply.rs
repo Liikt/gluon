@@ -85,7 +85,9 @@ impl Reply {
         let mut cur = 0xc;
 
         for cmd in &self.cmds {
-            ret[cur..cur+cmd.len() as usize].copy_from_slice(&cmd._serialize());
+            if let Some(bytes) = cmd._serialize() {
+                ret[cur..cur+cmd.len() as usize].copy_from_slice(&bytes);
+            }
             cur += cmd.len() as usize;
         }
 

@@ -6,7 +6,7 @@ use packets::payload::CommandPayload;
 #[derive(Clone)]
 pub struct Command {
     pub header: CommandHeader,
-    pub payload: CommandPayload
+    pub payload: Option<CommandPayload>
 }
 
 impl Command {
@@ -14,7 +14,7 @@ impl Command {
         header.size += payload.len();
         Self {
             header,
-            payload
+            payload: Some(payload)
         }
     }
 
@@ -24,19 +24,21 @@ impl Command {
 
         let payload_len = header.size as usize - header.len();
         let payload = CommandPayload::deserialize(
-            &buf[offset..offset+payload_len], header.cmd_type);
+            &buf[offset..offset+payload_len], header);
         Self {
             header,
             payload
         }
     }
 
-    pub fn _serialize(&self) -> Vec<u8> {
-        let mut ret = vec![0; self.len() as usize];
-        ret[..self.header.len()].copy_from_slice(&self.header.serialize());
-        ret[self.header.len()..].copy_from_slice(&self.payload.serialize());
+    pub fn _serialize(&self) -> Option<Vec<u8>> {
+        if self.payload.is_some() {
+            let mut ret = vec![0; self.len() as usize];
+            ret[..self.header.len()].copy_from_slice(&self.header.serialize());
+            ret[self.header.len()..].copy_from_slice(&*self.payload.as_ref().unwrap().serialize());
 
-        ret
+            Some(ret)
+        } else { None }
     }
 
     pub fn len(&self) -> u32 {
@@ -46,7 +48,12 @@ impl Command {
 
 impl Debug for Command {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Cmd[ {:?}, payload: {:x?} ]", self.header, self.payload)
+        if self.payload.is_some() {
+            write!(f, "Cmd[ {:?}, payload: {:x?} ]", self.header,
+            &*self.payload.as_ref().unwrap())
+        } else {
+            write!(f, "Cmd[ {:?} ]", self.header)
+        }
     }
 }
 
@@ -72,9 +79,11 @@ impl From<Vec<u8>> for Request {
 
         let mut offset = 0xc;
         while offset < val.len() {
-            let cmd= Command::deserialize(&val, offset);
+            let cmd = Command::deserialize(&val, offset);
             offset += cmd.len() as usize;
-            ret.cmds.push(cmd);
+            if cmd.payload.is_some() {
+                ret.cmds.push(cmd);
+            }
         }
 
         ret

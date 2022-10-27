@@ -1,6 +1,29 @@
 use std::fmt::Debug;
+use std::sync::{Mutex, MutexGuard};
+use std::collections::BTreeMap;
 
 use crate::typ::CommandType;
+
+static mut FRAGMENTED_MAP: Mutex<BTreeMap<u32, FragmentedPackage>> 
+    = Mutex::new(BTreeMap::new());
+
+pub fn get_fragment_map<'a>() -> MutexGuard<'a, BTreeMap<u32, FragmentedPackage>> {
+    unsafe { FRAGMENTED_MAP.lock().unwrap() }
+}
+
+#[derive(Debug, Clone)] 
+pub struct FragmentedPackage {
+    pub total_fragments: u32,
+    pub received_fragments: u32,
+    pub bytes: Vec<u8>
+}
+
+impl FragmentedPackage {
+    fn new(total_fragments: u32, total_len: usize) -> Self {
+        Self { total_fragments, received_fragments: 0,
+            bytes: vec![0; total_len] }
+    }
+}
 
 #[derive(Default, Clone, Copy)]
 pub struct CommandHeader {
@@ -127,6 +150,13 @@ impl CommandHeader {
                     buf[offset+0xc..offset+0x10].try_into().unwrap()));
                 ret.fragment_offset = Some(u32::from_be_bytes(
                     buf[offset+0x10..offset+0x14].try_into().unwrap()));
+
+                let mut map = get_fragment_map();
+                map.entry(ret.start_seq_num.unwrap())
+                    .or_insert(FragmentedPackage::new(
+                        ret.fragment_count.unwrap(),
+                        ret.total_len.unwrap() as usize
+                    ));
             },
             _ => {}
         }
